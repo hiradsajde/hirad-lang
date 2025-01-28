@@ -8,14 +8,26 @@ type BlockStmt struct {
 
 func (b BlockStmt) stmt() {}
 
+type VarsDeclarationStmt struct {
+	Variables []VarDeclarationStmt
+}
+
+func (n VarsDeclarationStmt) stmt() {}
+
 type VarDeclarationStmt struct {
-	Identifier    string
-	Constant      bool
-	AssignedValue Expr
-	ExplicitType  lexer.Token
+	ExplicitType lexer.Token
+	Constant     bool
+	Declartion   []VarMapDeclarationStmt
 }
 
 func (n VarDeclarationStmt) stmt() {}
+
+type VarMapDeclarationStmt struct {
+	Identifier    string
+	AssignedValue Expr
+}
+
+func (n VarMapDeclarationStmt) stmt() {}
 
 type ExpressionStmt struct {
 	Expression Expr
@@ -55,6 +67,12 @@ type CinStmt struct {
 }
 
 func (n CinStmt) stmt() {}
+
+type Namespace struct {
+	Name Expr
+}
+
+func (n Namespace) stmt() {}
 
 type WhileStmt struct {
 	Condition  Expr

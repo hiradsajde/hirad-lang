@@ -19,7 +19,9 @@ func parse_stmt(p *parser) ast.Stmt {
 
 func parse_expression_stmt(p *parser) ast.ExpressionStmt {
 	expression := parse_expr(p, defalt_bp)
-
+	if p.currentTokenKind() == lexer.SEMI_COLON {
+		p.expect(lexer.SEMI_COLON)
+	}
 	return ast.ExpressionStmt{
 		Expression: expression,
 	}
@@ -47,15 +49,20 @@ func parse_var_decl_stmt(p *parser) ast.Stmt {
 		return parse_fn_declaration(p)
 	}
 	isConstant := startToken.Kind == lexer.CONST
-	symbolName := p.expectError(lexer.IDENTIFIER,
-		fmt.Sprintf("Following %s expected variable name however instead recieved %s instead\n",
-			lexer.TokenKindString(startToken.Kind), lexer.TokenKindString(p.currentTokenKind())))
-
 	var assignmentValue ast.Expr
-	if p.currentTokenKind() != lexer.SEMI_COLON {
-		p.expect(lexer.ASSIGNMENT)
+	var results []ast.VarMapDeclarationStmt
+	p.advance()
+	i := 0
+	for p.currentTokenKind() != lexer.SEMI_COLON {
+		symbolName := p.previousToken()
+		if p.currentTokenKind() == lexer.COMMA {
+			p.advance()
+		}
+		if p.currentTokenKind() == lexer.ASSIGNMENT {
+			p.advance()
+		}
 		assignmentValue = parse_expr(p, assignment)
-		fmt.Println(assignmentValue)
+
 		var (
 			assignmentType   bool = true
 			assignmentString string
@@ -71,18 +78,20 @@ func parse_var_decl_stmt(p *parser) ast.Stmt {
 		if !assignmentType {
 			panic(fmt.Sprint("variable declaration type is ", startToken.Value, " but ", assignmentString, " assigned"))
 		}
+		if isConstant && assignmentValue == nil {
+			panic("Cannot define constant variable without providing default value.")
+		}
+		if i%2 == 0 {
+			results = append(results, ast.VarMapDeclarationStmt{Identifier: symbolName.Value, AssignedValue: assignmentValue})
+		}
+		i += 1
 	}
 	p.expect(lexer.SEMI_COLON)
 
-	if isConstant && assignmentValue == nil {
-		panic("Cannot define constant variable without providing default value.")
-	}
-
 	return ast.VarDeclarationStmt{
-		Constant:      isConstant,
-		Identifier:    symbolName.Value,
-		AssignedValue: assignmentValue,
-		ExplicitType:  startToken,
+		Constant:     isConstant,
+		ExplicitType: startToken,
+		Declartion:   results,
 	}
 }
 
@@ -94,14 +103,6 @@ func parse_fn_params_and_body(p *parser) ([]ast.Parameter, lexer.Token, []ast.St
 	p.advance()
 	p.expect(lexer.OPEN_PAREN)
 	for p.hasTokens() && p.currentTokenKind() != lexer.CLOSE_PAREN {
-		paramName := p.expect(lexer.IDENTIFIER).Value
-		paramType := parse_type(p, defalt_bp)
-
-		functionParams = append(functionParams, ast.Parameter{
-			Name: paramName,
-			Type: paramType,
-		})
-
 		if !p.currentToken().IsOneOfMany(lexer.CLOSE_PAREN, lexer.EOF) {
 			p.expect(lexer.COMMA)
 		}
@@ -124,6 +125,19 @@ func parse_fn_declaration(p *parser) ast.Stmt {
 		ReturnType: returnType,
 		Body:       functionBody,
 		Name:       functionName,
+	}
+}
+
+func parse_using_stmt(p *parser) ast.Stmt {
+	p.advance()
+	if p.currentTokenKind() != lexer.NAMESPACE {
+		panic("this compiler only support namespaces `using namespace something`")
+	}
+	p.advance()
+	namespace := parse_expr(p, defalt_bp)
+	p.expect(lexer.SEMI_COLON)
+	return ast.Namespace{
+		Name: namespace,
 	}
 }
 

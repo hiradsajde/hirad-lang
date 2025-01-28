@@ -54,8 +54,6 @@ func parse_return_expr(p *parser) ast.Expr {
 func parse_assignment_expr(p *parser, left ast.Expr, bp binding_power) ast.Expr {
 	p.advance()
 	rhs := parse_expr(p, bp)
-	p.expect(lexer.SEMI_COLON)
-
 	return ast.AssignmentExpr{
 		Assigne:       left,
 		AssignedValue: rhs,

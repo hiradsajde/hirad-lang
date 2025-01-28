@@ -64,6 +64,8 @@ const (
 	CONST
 	BOOL
 	INCLUDE
+	USING
+	NAMESPACE
 	IF
 	ELSE
 	WHILE
@@ -94,6 +96,8 @@ var reserved_lu map[string]TokenKind = map[string]TokenKind{
 	"bool":        BOOL,
 	"left_shift":  LEFT_SHIFT,
 	"right_shift": RIGHT_SHIFT,
+	"using":       USING,
+	"namespace":   NAMESPACE,
 }
 
 type Token struct {
@@ -221,6 +225,10 @@ func TokenKindString(kind TokenKind) string {
 		return "while"
 	case BOOL:
 		return "bool"
+	case USING:
+		return "using"
+	case NAMESPACE:
+		return "namespace"
 	default:
 		return fmt.Sprintf("unknown(%d)", kind)
 	}
