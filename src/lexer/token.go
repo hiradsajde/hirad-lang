@@ -98,6 +98,7 @@ var reserved_lu map[string]TokenKind = map[string]TokenKind{
 	"right_shift": RIGHT_SHIFT,
 	"using":       USING,
 	"namespace":   NAMESPACE,
+	"semi_colon":  SEMI_COLON,
 }
 
 type Token struct {
@@ -229,6 +230,8 @@ func TokenKindString(kind TokenKind) string {
 		return "using"
 	case NAMESPACE:
 		return "namespace"
+	case SEMI_COLON:
+		return "semi_colon"
 	default:
 		return fmt.Sprintf("unknown(%d)", kind)
 	}

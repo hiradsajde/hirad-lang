@@ -53,13 +53,14 @@ func parse_var_decl_stmt(p *parser) ast.Stmt {
 	var results []ast.VarMapDeclarationStmt
 	p.advance()
 	i := 0
-	for p.currentTokenKind() != lexer.SEMI_COLON {
+	for p.currentTokenKind() != lexer.SEMI_COLON && p.currentTokenKind() != lexer.EOF {
 		symbolName := p.previousToken()
 		if p.currentTokenKind() == lexer.COMMA {
 			p.advance()
-		}
-		if p.currentTokenKind() == lexer.ASSIGNMENT {
+		} else if p.currentTokenKind() == lexer.ASSIGNMENT {
 			p.advance()
+		} else {
+			p.expect(lexer.SEMI_COLON)
 		}
 		assignmentValue = parse_expr(p, assignment)
 
